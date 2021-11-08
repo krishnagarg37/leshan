@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A collection of {@link LwM2mAttribute} instances that are handled as a collection that must adhere to rules that are
+ * A collection of {@link Attribute} instances that are handled as a collection that must adhere to rules that are
  * specified in LwM2m, e.g. that the 'pmin' attribute must be less than the 'pmax' attribute, if they're both part of
  * the same AttributeSet.
  */
@@ -132,6 +132,10 @@ public class AttributeSet {
 
     public Collection<Attribute> getAttributes() {
         return attributeMap.values();
+    }
+
+    public Attribute getAttribute(String param) {
+        return attributeMap.get(param);
     }
 
     public String[] toQueryParams() {

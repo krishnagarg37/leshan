@@ -120,4 +120,8 @@ public class LwM2mAttributeModel<T> {
         modelMap.put(EVALUATE_MINIMUM_PERIOD, EVALUATE_MINIMUM_PERIOD_ATTR);
         modelMap.put(EVALUATE_MAXIMUM_PERIOD, EVALUATE_MAXIMUM_PERIOD_ATTR);
     }
+
+    public String getCoRELinkParam() {
+        return coRELinkParam;
+    }
 }
