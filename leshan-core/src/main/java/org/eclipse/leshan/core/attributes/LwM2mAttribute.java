@@ -24,7 +24,7 @@ import org.eclipse.leshan.core.util.Validate;
  * The {@link Attachment} level of the attribute indicates where it can be applied, e.g. the 'pmin' attribute is only
  * applicable to resources, but it can be assigned on all levels and then inherited by underlying resources.
  */
-public class LwM2mAttribute {
+public class LwM2mAttribute implements Attribute {
     private final LwM2mAttributeModel<?> model;
     private final Object value;
 
@@ -69,10 +69,12 @@ public class LwM2mAttribute {
         return value;
     }
 
+    @Override
     public String getCoRELinkParam() {
         return model.coRELinkParam;
     }
 
+    @Override
     public Object getValue() {
         return value;
     }
