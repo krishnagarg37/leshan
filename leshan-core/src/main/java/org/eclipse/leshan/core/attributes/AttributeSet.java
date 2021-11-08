@@ -32,15 +32,15 @@ import java.util.Map;
  */
 public class AttributeSet {
 
-    private final Map<String, LwM2mAttribute> attributeMap = new LinkedHashMap<>();
+    private final Map<String, Attribute> attributeMap = new LinkedHashMap<>();
 
-    public AttributeSet(LwM2mAttribute... attributes) {
+    public AttributeSet(Attribute... attributes) {
         this(Arrays.asList(attributes));
     }
 
-    public AttributeSet(Collection<LwM2mAttribute> attributes) {
+    public AttributeSet(Collection<? extends Attribute> attributes) {
         if (attributes != null && !attributes.isEmpty()) {
-            for (LwM2mAttribute attr : attributes) {
+            for (Attribute attr : attributes) {
                 // Check for duplicates
                 if (attributeMap.containsKey(attr.getCoRELinkParam())) {
                     throw new IllegalArgumentException(String.format(
@@ -53,21 +53,24 @@ public class AttributeSet {
 
     public void validate(AssignationLevel assignationLevel) {
         // Can all attributes be assigned to this level?
-        for (LwM2mAttribute attr : attributeMap.values()) {
-            if (!attr.canBeAssignedTo(assignationLevel)) {
-                throw new IllegalArgumentException(String.format("Attribute '%s' cannot be assigned to level %s",
-                        attr.getCoRELinkParam(), assignationLevel.name()));
+        for (Attribute attr : attributeMap.values()) {
+            if (attr instanceof LwM2mAttribute) {
+                LwM2mAttribute lwm2mAttr = (LwM2mAttribute) attr;
+                if (!lwm2mAttr.canBeAssignedTo(assignationLevel)) {
+                    throw new IllegalArgumentException(String.format("Attribute '%s' cannot be assigned to level %s",
+                            attr.getCoRELinkParam(), assignationLevel.name()));
+                }
             }
         }
-        LwM2mAttribute pmin = attributeMap.get(LwM2mAttributeModel.MINIMUM_PERIOD);
-        LwM2mAttribute pmax = attributeMap.get(LwM2mAttributeModel.MAXIMUM_PERIOD);
+        Attribute pmin = attributeMap.get(LwM2mAttributeModel.MINIMUM_PERIOD);
+        Attribute pmax = attributeMap.get(LwM2mAttributeModel.MAXIMUM_PERIOD);
         if ((pmin != null) && (pmax != null) && (Long) pmin.getValue() > (Long) pmax.getValue()) {
             throw new IllegalArgumentException(String.format("Cannot write attributes where '%s' > '%s'",
                     pmin.getCoRELinkParam(), pmax.getCoRELinkParam()));
         }
 
-        LwM2mAttribute epmin = attributeMap.get(LwM2mAttributeModel.EVALUATE_MINIMUM_PERIOD);
-        LwM2mAttribute epmax = attributeMap.get(LwM2mAttributeModel.EVALUATE_MAXIMUM_PERIOD);
+        Attribute epmin = attributeMap.get(LwM2mAttributeModel.EVALUATE_MINIMUM_PERIOD);
+        Attribute epmax = attributeMap.get(LwM2mAttributeModel.EVALUATE_MAXIMUM_PERIOD);
         if ((epmin != null) && (epmax != null) && (Long) epmin.getValue() > (Long) epmax.getValue()) {
             throw new IllegalArgumentException(String.format("Cannot write attributes where '%s' > '%s'",
                     epmin.getCoRELinkParam(), epmax.getCoRELinkParam()));
@@ -82,9 +85,12 @@ public class AttributeSet {
      */
     public AttributeSet filter(Attachment attachment) {
         List<LwM2mAttribute> attrs = new ArrayList<>();
-        for (LwM2mAttribute attr : getAttributes()) {
-            if (attr.getAttachment() == attachment) {
-                attrs.add(attr);
+        for (Attribute attr : getAttributes()) {
+            if (attr instanceof LwM2mAttribute) {
+                LwM2mAttribute lwm2mAttr = (LwM2mAttribute) attr;
+                if (lwm2mAttr.getAttachment() == attachment) {
+                    attrs.add(lwm2mAttr);
+                }
             }
         }
         return new AttributeSet(attrs);
@@ -99,12 +105,12 @@ public class AttributeSet {
      * @return the merged AttributeSet
      */
     public AttributeSet merge(AttributeSet attributes) {
-        Map<String, LwM2mAttribute> merged = new LinkedHashMap<>();
-        for (LwM2mAttribute attr : getAttributes()) {
+        Map<String, Attribute> merged = new LinkedHashMap<>();
+        for (Attribute attr : getAttributes()) {
             merged.put(attr.getCoRELinkParam(), attr);
         }
         if (attributes != null) {
-            for (LwM2mAttribute attr : attributes.getAttributes()) {
+            for (Attribute attr : attributes.getAttributes()) {
                 merged.put(attr.getCoRELinkParam(), attr);
             }
         }
@@ -118,19 +124,19 @@ public class AttributeSet {
      */
     public Map<String, Object> getMap() {
         Map<String, Object> result = new LinkedHashMap<>();
-        for (LwM2mAttribute attr : attributeMap.values()) {
+        for (Attribute attr : attributeMap.values()) {
             result.put(attr.getCoRELinkParam(), attr.getValue());
         }
         return Collections.unmodifiableMap(result);
     }
 
-    public Collection<LwM2mAttribute> getAttributes() {
+    public Collection<Attribute> getAttributes() {
         return attributeMap.values();
     }
 
     public String[] toQueryParams() {
         List<String> queries = new LinkedList<>();
-        for (LwM2mAttribute attr : attributeMap.values()) {
+        for (Attribute attr : attributeMap.values()) {
             if (attr.getValue() != null) {
                 queries.add(String.format("%s=%s", attr.getCoRELinkParam(), attr.getValue()));
             } else {
